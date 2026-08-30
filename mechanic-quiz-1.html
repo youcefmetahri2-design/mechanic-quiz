@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>تحدي الميكانيك — أسئلة سهلة وصعبة</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0A0E14">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Tajawal:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0A0E14;
+    --panel:#10161F;
+    --line:#1E2A38;
+    --cyan:#4FD8E8;
+    --cyan-dim:#2A7A85;
+    --amber:#E8A94F;
+    --green:#5FD98A;
+    --red:#E8607A;
+    --text:#DCE6EE;
+    --muted:#7C8B9C;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html,body{
+    background: var(--bg);
+    color: var(--text);
+    font-family:'Tajawal', sans-serif;
+  }
+  body{
+    min-height:100vh;
+    background-image:
+      linear-gradient(var(--line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--line) 1px, transparent 1px);
+    background-size: 34px 34px;
+    background-attachment: fixed;
+  }
+
+  .coins-bar{
+    position:sticky;
+    top:0;
+    z-index:50;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    background: rgba(16,22,31,0.92);
+    backdrop-filter: blur(6px);
+    border-bottom:1px solid var(--line);
+    padding:10px 16px;
+    font-family:'JetBrains Mono', monospace;
+  }
+  .coins-icon{ font-size:16px; }
+  .coins-total{
+    color: var(--amber);
+    font-weight:700;
+    font-size:15px;
+  }
+  .coins-label{ color: var(--muted); font-size:11px; }
+  .coins-gain{
+    color: var(--green);
+    font-size:12px;
+    font-weight:700;
+    opacity:0;
+    transform: translateY(0px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+  }
+  .coins-gain.show{
+    opacity:1;
+    transform: translateY(-4px);
+  }
+
+  header{
+    max-width:700px;
+    margin:0 auto;
+    padding:48px 24px 20px;
+    text-align:center;
+  }
+  .chip{
+    display:inline-block;
+    font-family:'JetBrains Mono', monospace;
+    font-size:11px;
+    letter-spacing:0.15em;
+    color: var(--cyan);
+    border:1px solid var(--cyan-dim);
+    padding:5px 14px;
+    border-radius:20px;
+    margin-bottom:20px;
+  }
+  h1{
+    font-size:clamp(28px, 6vw, 42px);
+    font-weight:900;
+    color:#fff;
+    margin-bottom:12px;
+  }
+  h1 span{ color: var(--cyan); }
+  .lede{
+    color: var(--muted);
+    font-size:15px;
+    line-height:1.8;
+    font-weight:300;
+  }
+
+  .stage{ max-width:640px; margin:0 auto; padding:20px 24px 80px; }
+
+  /* level select */
+  .level-select{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:14px;
+    margin-top:10px;
+  }
+  .level-card{
+    background: var(--panel);
+    border:1.5px solid var(--line);
+    border-radius:14px;
+    padding:26px 18px;
+    text-align:center;
+    cursor:pointer;
+    transition: all 0.2s ease;
+  }
+  .level-card:hover{ transform: translateY(-3px); }
+  .level-card.easy:hover{ border-color: var(--green); }
+  .level-card.hard:hover{ border-color: var(--red); }
+  .level-icon{ font-size:32px; margin-bottom:10px; }
+  .level-name{ font-size:18px; font-weight:700; color:#fff; margin-bottom:6px; }
+  .level-desc{ font-size:12px; color: var(--muted); }
+  .level-best{
+    font-family:'JetBrains Mono', monospace;
+    font-size:12px;
+    color: var(--cyan);
+    margin-top:10px;
+    padding-top:10px;
+    border-top:1px dashed var(--line);
+  }
+  .level-best .dash{ color: var(--muted); }
+
+  /* stats strip */
+  .stats-strip{
+    display:grid;
+    grid-template-columns:1fr 1fr 1fr;
+    gap:10px;
+    margin-top:16px;
+  }
+  .stat-box{
+    background: var(--panel);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:12px 8px;
+    text-align:center;
+  }
+  .stat-num{
+    font-family:'JetBrains Mono', monospace;
+    font-size:20px;
+    font-weight:700;
+    color:#fff;
+  }
+  .stat-label{ font-size:10.5px; color: var(--muted); margin-top:3px; }
+
+  .history-toggle{
+    display:block;
+    margin:16px auto 0;
+    background:none;
+    border:none;
+    color: var(--cyan);
+    font-family:'Tajawal', sans-serif;
+    font-size:13px;
+    text-decoration:underline;
+    cursor:pointer;
+    text-underline-offset:3px;
+  }
+
+  .history-panel{
+    display:none;
+    margin-top:14px;
+    background: var(--panel);
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:14px 16px;
+  }
+  .history-panel.show{ display:block; }
+  .history-row{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:9px 0;
+    border-bottom:1px solid var(--line);
+    font-size:13px;
+  }
+  .history-row:last-child{ border-bottom:none; }
+  .history-meta{ color: var(--muted); font-size:11px; }
+  .history-score{
+    font-family:'JetBrains Mono', monospace;
+    font-weight:700;
+    color: var(--amber);
+  }
+  .history-empty{ color: var(--muted); font-size:13px; text-align:center; padding:6px 0; }
+  .reset-progress{
+    display:block;
+    margin:14px auto 0;
+    background:none;
+    border:none;
+    color: var(--red);
+    font-family:'Tajawal', sans-serif;
+    font-size:11.5px;
+    opacity:0.75;
+    cursor:pointer;
+  }
+  .reset-progress:hover{ opacity:1; }
+
+  /* category filter */
+  .cat-filter{
+    margin-top:18px;
+  }
+  .cat-filter-label{
+    font-size:12px;
+    color: var(--muted);
+    margin-bottom:8px;
+    text-align:center;
+  }
+  .cat-chips{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+    justify-content:center;
+  }
+  .cat-chip{
+    font-family:'JetBrains Mono', monospace;
+    font-size:11px;
+    padding:6px 12px;
+    border-radius:20px;
+    border:1px solid var(--line);
+    color: var(--muted);
+    background: var(--panel);
+    cursor:pointer;
+    transition: all 0.15s ease;
+  }
+  .cat-chip.active{
+    color: var(--bg);
+    background: var(--cyan);
+    border-color: var(--cyan);
+    font-weight:700;
+  }
+
+  /* quiz */
+  .quiz-view{ display:none; }
+  .quiz-view.show{ display:block; }
+
+  .quiz-top{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:20px;
+  }
+  .level-badge{
+    font-family:'JetBrains Mono', monospace;
+    font-size:11px;
+    letter-spacing:0.1em;
+    padding:5px 12px;
+    border-radius:20px;
+    border:1px solid var(--line);
+  }
+  .level-badge.easy{ color: var(--green); border-color: var(--green); }
+  .level-badge.hard{ color: var(--red); border-color: var(--red); }
+  .score-badge{
+    font-family:'JetBrains Mono', monospace;
+    font-size:13px;
+    color: var(--amber);
+  }
+
+  .progress-track{
+    height:5px;
+    background: var(--line);
+    border-radius:6px;
+    overflow:hidden;
+    margin-bottom:28px;
+  }
+  .progress-fill{
+    height:100%;
+    background: var(--cyan);
+    width:0%;
+    transition: width 0.4s ease;
+  }
+
+  .qcard{
+    background: var(--panel);
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:32px 24px;
+  }
+  .qcat-tag{
+    display:inline-block;
+    font-family:'JetBrains Mono', monospace;
+    font-size:10.5px;
+    color: var(--cyan);
+    border:1px solid var(--cyan-dim);
+    padding:3px 10px;
+    border-radius:20px;
+    margin-bottom:14px;
+  }
+  .qtext{
+    font-size:19px;
+    font-weight:700;
+    color:#fff;
+    line-height:1.7;
+    margin-bottom:24px;
+  }
+  .choices{ display:flex; flex-direction:column; gap:10px; }
+  .choice-btn{
+    background: rgba(255,255,255,0.02);
+    border:1.5px solid var(--line);
+    color: var(--text);
+    padding:14px 18px;
+    border-radius:10px;
+    font-family:'Tajawal', sans-serif;
+    font-size:14px;
+    text-align:right;
+    cursor:pointer;
+    transition: all 0.2s ease;
+  }
+  .choice-btn:hover:not(:disabled){ border-color: var(--cyan-dim); background: rgba(79,216,232,0.05); }
+  .choice-btn.correct{ border-color: var(--green); background: rgba(95,217,138,0.12); }
+  .choice-btn.wrong{ border-color: var(--red); background: rgba(232,96,122,0.12); }
+  .choice-btn:disabled{ cursor:default; }
+
+  .explain-box{
+    display:none;
+    margin-top:18px;
+    padding:14px 16px;
+    background: rgba(79,216,232,0.06);
+    border-right:3px solid var(--cyan);
+    border-radius:6px;
+    font-size:13px;
+    line-height:1.8;
+    color: var(--muted);
+  }
+  .explain-box.show{ display:block; }
+
+  .next-btn{
+    display:none;
+    margin:20px auto 0;
+    background: var(--cyan);
+    color: var(--bg);
+    border:none;
+    padding:12px 30px;
+    border-radius:30px;
+    font-family:'Tajawal', sans-serif;
+    font-weight:700;
+    font-size:14px;
+    cursor:pointer;
+  }
+  .next-btn.show{ display:block; }
+
+  /* result */
+  .result-view{ display:none; text-align:center; }
+  .result-view.show{ display:block; }
+  .result-score{
+    font-family:'JetBrains Mono', monospace;
+    font-size:52px;
+    font-weight:700;
+    color: var(--cyan);
+    margin-bottom:8px;
+  }
+  .result-label{ color: var(--muted); margin-bottom:14px; font-size:14px; }
+  .record-badge{
+    display:none;
+    font-family:'JetBrains Mono', monospace;
+    font-size:12px;
+    letter-spacing:0.1em;
+    color: var(--bg);
+    background: var(--green);
+    padding:5px 14px;
+    border-radius:20px;
+    margin-bottom:20px;
+  }
+  .record-badge.show{ display:inline-block; }
+  .result-msg{
+    background: var(--panel);
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:20px;
+    font-size:14px;
+    line-height:1.8;
+    margin-bottom:24px;
+  }
+  .retry-btn{
+    background: transparent;
+    border:1.5px solid var(--cyan);
+    color: var(--cyan);
+    padding:12px 28px;
+    border-radius:30px;
+    font-family:'Tajawal', sans-serif;
+    font-weight:700;
+    font-size:14px;
+    cursor:pointer;
+  }
+
+  footer{
+    text-align:center;
+    padding:20px 24px 50px;
+    color:#4A5666;
+    font-size:12px;
+  }
+</style>
+</head>
+<body>
+
+<div class="coins-bar">
+  <span class="coins-icon">🪙</span>
+  <span class="coins-total" id="coinsTotal">0</span>
+  <span class="coins-label">كوين</span>
+  <span class="coins-gain" id="coinsGain"></span>
+</div>
+
+<header>
+  <div class="chip">MECHANIC // QUIZ</div>
+  <h1>تحدي <span>الميكانيك</span></h1>
+  <p class="lede">أسئلة حقيقية فميكانيك السيارات — محرك، كهرباء، فرامل، ناقل حركة وأكثر. اختر مستواك وابدأ.</p>
+</header>
+
+<div class="stage">
+
+  <div id="levelSelect">
+    <div class="level-select">
+      <div class="level-card easy" data-level="easy">
+        <div class="level-icon">🟢</div>
+        <div class="level-name">سهل</div>
+        <div class="level-desc">أساسيات كل واحد يخدم بالسيارة لازم يعرفها</div>
+      </div>
+      <div class="level-card hard" data-level="hard">
+        <div class="level-icon">🔴</div>
+        <div class="level-name">صعب</div>
+        <div class="level-desc">تشخيص أعطال وتفاصيل تقنية أعمق</div>
+      </div>
+    </div>
+
+    <div class="stats-strip" id="statsStrip">
+      <div class="stat-box">
+        <div class="stat-num" id="statAttempts">0</div>
+        <div class="stat-label">محاولات</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-num" id="statBestEasy">—</div>
+        <div class="stat-label">أفضل نتيجة (سهل)</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-num" id="statBestHard">—</div>
+        <div class="stat-label">أفضل نتيجة (صعب)</div>
+      </div>
+    </div>
+
+    <div class="cat-filter">
+      <div class="cat-filter-label">فلترة حسب القسم (اختياري)</div>
+      <div class="cat-chips" id="catChips"></div>
+    </div>
+
+    <button class="history-toggle" id="historyToggle">عرض سجل المحاولات ↓</button>
+    <div class="history-panel" id="historyPanel">
+      <div id="historyList"><div class="history-empty">ما فيه محاولات مسجلة بعد</div></div>
+      <button class="reset-progress" id="resetProgress">مسح كل السجل</button>
+    </div>
+  </div>
+
+  <div class="quiz-view" id="quizView">
+    <div class="quiz-top">
+      <div class="level-badge" id="levelBadge"></div>
+      <div class="score-badge" id="scoreBadge">0 / 0</div>
+    </div>
+    <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+
+    <div class="qcard">
+      <div class="qcat-tag" id="qcatTag">المحرك</div>
+      <div class="qtext" id="qtext"></div>
+      <div class="choices" id="choices"></div>
+      <div class="explain-box" id="explainBox"></div>
+    </div>
+    <button class="next-btn" id="nextBtn">السؤال التالي ←</button>
+  </div>
+
+  <div class="result-view" id="resultView">
+    <div class="result-score" id="resultScore">0/0</div>
+    <div class="record-badge" id="recordBadge">🏆 رقم قياسي جديد</div>
+    <div class="result-label">نتيجتك النهائية</div>
+    <div class="result-msg" id="resultMsg"></div>
+    <button class="retry-btn" id="retryBtn">جرب مستوى ثاني</button>
+  </div>
+
+</div>
+
+<footer>أسئلة للتعلم الذاتي — الهدف الفهم مو بس الإجابة الصحيحة</footer>
+
+<script>
+/* ======================================================================
+   بنك أسئلة تحدي الميكانيك
+   ----------------------------------------------------------------------
+   كل سؤال = { q, opts:[4], correct: index(0-3), explain, diff:'easy'|'hard', cat }
+   باش تزيد أسئلة جداد فالمستقبل: زيد عناصر جداد داخل ARRAY تحت (QUESTIONS.push)
+   أو زيدهم مباشرة داخل نفس المصفوفة بنفس الشكل. ماكاش داعي تبدل أي حاجة أخرى.
+   ====================================================================== */
+
+const CATEGORIES = {
+  engine:       "المحرك",
+  electrical:   "الكهرباء",
+  transmission: "ناقل الحركة",
+  brakes:       "الفرامل",
+  suspension:   "التعليق والتوجيه",
+  cooling:      "نظام التبريد",
+  fuel:         "نظام الوقود",
+  tires:        "الإطارات",
+  maintenance:  "الصيانة العامة",
+  exhaust:      "نظام العادم"
+};
+
+const QUESTIONS = [
+
+/* ================= المحرك ================= */
+{ q:"شحال عدد الأشواط فمحرك رباعي الأشواط؟", opts:["شوطين","3 أشواط","4 أشواط","6 أشواط"], correct:2, explain:"محرك 4 أشواط يمر بـ: الإدخال، الضغط، الاحتراق (القوة)، ثم العادم — دورة كاملة كل شوطين لعمود المرفق.", diff:"easy", cat:"engine" },
+{ q:"واش تسمى القطعة اللي تشعل خليط الوقود والهواء فمحرك البنزين؟", opts:["البوجي","الحاقن","الترباص","الكاربوراتور"], correct:0, explain:"البوجي (Bougie d'allumage) يولد شرارة كهربائية تشعل الخليط داخل الأسطوانة فمحرك البنزين.", diff:"easy", cat:"engine" },
+{ q:"الزيت فالمحرك دوره الأساسي هو:", opts:["تبريد الإطارات","تشحيم الأجزاء المتحركة وتقليل الاحتكاك","زيادة سرعة المحرك","تنظيف الزجاج"], correct:1, explain:"الزيت يكوّن طبقة رقيقة بين الأجزاء المعدنية المتحركة تقلل الاحتكاك والحرارة وتحمي المحرك من التآكل.", diff:"easy", cat:"engine" },
+{ q:"واش يسمى الجزء اللي يربط المكبس (البيستون) بعمود المرفق؟", opts:["ذراع التوصيل (Bielle)","الحزام","الرادياتور","الكاربوراتور"], correct:0, explain:"ذراع التوصيل ينقل الحركة الترددية للمكبس إلى حركة دورانية بعمود المرفق.", diff:"easy", cat:"engine" },
+{ q:"محرك الديزل يشتغل بدون:", opts:["مضخة وقود","بوجي إشعال","فلتر هواء","زيت"], correct:1, explain:"محرك الديزل يعتمد على الاشتعال الذاتي بسبب الضغط العالي وليس على شرارة كهربائية، فما يحتاجش بوجي إشعال (عكس البنزين).", diff:"easy", cat:"engine" },
+{ q:"واش يسمى الغطاء العلوي للمحرك اللي فيه الصمامات؟", opts:["كارتر الزيت","رأس المحرك (Culasse)","المشع","الكاربوراتور"], correct:1, explain:"رأس المحرك يعلو الأسطوانات ويحتوي غرف الاحتراق والصمامات وأحياناً عمود الكامات.", diff:"easy", cat:"engine" },
+{ q:"إذا كان مستوى زيت المحرك ناقص بزاف، أول خطر هو:", opts:["نقص الوقود","تلف المحرك بسبب الاحتكاك","ضعف الإضاءة","تسرب الماء"], correct:1, explain:"نقص الزيت يخلي الأجزاء المتحركة تحتك مباشرة ببعضها، وهذا يسبب سخانة وتآكل سريع يقدر يتلف المحرك بالكامل.", diff:"easy", cat:"engine" },
+{ q:"شنو دور حزام التوقيت (Courroie de distribution)؟", opts:["تبريد المحرك","تنسيق حركة الصمامات مع عمود المرفق","شحن البطارية","تسخين المقصورة"], correct:1, explain:"حزام التوقيت يربط عمود المرفق بعمود الكامات باش تفتح وتغلق الصمامات فالتوقيت الصحيح بالنسبة لحركة المكابس.", diff:"easy", cat:"engine" },
+{ q:"واش تسمى القطعة اللي تجمع الغازات الحارقة خارجة من الأسطوانات باتجاه العادم؟", opts:["مجمع العادم (Collecteur d'échappement)","الرادياتور","الكاربوراتور","المرشح"], correct:0, explain:"مجمع العادم يجمع غازات الاحتراق من كل أسطوانة ويوجهها نحو أنبوب العادم.", diff:"easy", cat:"engine" },
+{ q:"فمحرك 4 أشواط، فأي شوط تنغلق الصمامتين (الإدخال والعادم) فنفس الوقت تقريباً؟", opts:["شوط الإدخال","نهاية شوط الضغط / بداية الاحتراق","شوط العادم","بداية شوط الإدخال"], correct:1, explain:"فنهاية شوط الضغط، تكون الصمامتين مغلوقتين باش يبقى الخليط محبوس ومضغوط قبل ما يشتعل بالشرارة أو الضغط.", diff:"hard", cat:"engine" },
+{ q:"واش تعني نسبة الانضغاط (Taux de compression) فالمحرك؟", opts:["نسبة الوقود للهواء","نسبة حجم الأسطوانة قبل وبعد شوط الضغط","سرعة دوران المحرك","كمية الزيت المستعملة"], correct:1, explain:"نسبة الانضغاط تقارن حجم الأسطوانة والمكبس فأسفل نقطة مقابل أعلى نقطة، وكلما زادت زادت كفاءة وقوة الاحتراق (لكن تتطلب وقود أجود).", diff:"hard", cat:"engine" },
+{ q:"إذا سمعت صوت 'طرقعة معدنية' (Cliquetis) فالمحرك وقت التسارع، السبب الغالب هو:", opts:["نقص فالماء","احتراق غير طبيعي (Auto-allumage) بسبب وقود غير مناسب أو ترسبات كربون","زيادة فالزيت","مشكل فالإطارات"], correct:1, explain:"الطرقعة (Cliquetis/Knocking) تحدث لما الخليط يشتعل بشكل غير منتظم قبل الأوان، غالباً بسبب وقود منخفض الأوكتان أو ترسبات كربونية.", diff:"hard", cat:"engine" },
+{ q:"واش هو دور عمود الكامات (Arbre à cames)؟", opts:["تحويل الحركة الترددية لدورانية","التحكم فوقت فتح وغلق الصمامات","ضخ الزيت","تبريد المحرك"], correct:1, explain:"عمود الكامات يدور بتناسق مع عمود المرفق ويفتح ويغلق صمامات الإدخال والعادم فالتوقيت الصحيح.", diff:"hard", cat:"engine" },
+{ q:"لو تلف حزام التوقيت فمحرك 'interférence' وهو خدام، النتيجة الغالبة:", opts:["توقف بسيط بلا ضرر","تصادم الصمامات مع المكابس وتلف كبير فالمحرك","نقص بسيط فالأداء","لا يوجد تأثير"], correct:1, explain:"فالمحركات من نوع Interférence، المكابس والصمامات يتشاركو نفس الفضاء، فإذا تلف الحزام وهو دائر، الصمامات تبقى مفتوحة والمكبس يصدمها.", diff:"hard", cat:"engine" },
+{ q:"واش يعني مصطلح 'Cylindrée' (سعة المحرك)؟", opts:["عدد الأسطوانات فقط","الحجم الكلي اللي تجتاحه المكابس داخل الأسطوانات","قوة المحرك بالحصان","وزن المحرك"], correct:1, explain:"سعة المحرك هي مجموع الحجوم اللي يجتاحها كل مكبس فحركته داخل أسطوانته، مقاسة عادة باللتر أو السنتيمتر المكعب.", diff:"hard", cat:"engine" },
+{ q:"العطل المسمى 'Culasse fissurée' (تشقق رأس المحرك) غالباً يظهر من خلال:", opts:["اختلاط الزيت بالماء أو دخان أبيض من العادم","تحسن الأداء","نقص الضوضاء","زيادة سرعة المحرك"], correct:0, explain:"تشقق رأس المحرك يخلي سائل التبريد يتسرب لغرفة الاحتراق أو يختلط بالزيت، وهذا يظهر كدخان أبيض كثيف أو زيت لونه حليبي.", diff:"hard", cat:"engine" },
+{ q:"واش دور الفلتر الهوائي بالنسبة للمحرك بالضبط؟", opts:["تنقية الهواء الداخل للمحرك من الغبار والشوائب قبل الاحتراق","تبريد الزيت","ضخ الوقود","تنظيف العادم"], correct:0, explain:"فلتر الهواء يمنع الغبار والجسيمات من دخول غرفة الاحتراق، وهذا يحمي الأسطوانات والمكابس من التآكل المبكر.", diff:"hard", cat:"engine" },
+
+/* ================= الكهرباء ================= */
+{ q:"واش دور البطارية فالسيارة؟", opts:["تبريد المحرك","تخزين وتوفير الطاقة الكهربائية للانطلاق والأجهزة","ضخ الوقود","تشحيم المحرك"], correct:1, explain:"البطارية توفر التيار اللازم لتشغيل المرفق عند الانطلاق ولتشغيل الأجهزة الكهربائية والمحرك مطفي.", diff:"easy", cat:"electrical" },
+{ q:"واش تسمى القطعة اللي تشحن البطارية والمحرك خدام؟", opts:["المرفق (Démarreur)","المولد (Alternateur)","البوجي","الفلتر"], correct:1, explain:"المولد يحول جزء من طاقة دوران المحرك لكهرباء تشحن بها البطارية وتغذي الأجهزة الكهربائية أثناء السير.", diff:"easy", cat:"electrical" },
+{ q:"إذا ما بانتش أضواء التابلو ولا حتى صوت عند الانطلاق، السبب الغالب:", opts:["نقص فالماء","بطارية فارغة أو تلف فالتوصيلات","نقص فالإطارات","مشكل فالفرامل"], correct:1, explain:"غياب أي إشارة كهربائية (لا ضوء ولا صوت) عادة يدل على بطارية فارغة تماماً أو انقطاع فالكابلات الأساسية.", diff:"easy", cat:"electrical" },
+{ q:"الفيوز (Fusible) فالسيارة دوره:", opts:["حماية الدارة الكهربائية من زيادة التيار","تسخين المقصورة","تبريد المحرك","زيادة القوة"], correct:0, explain:"الفيوز يحترق عمداً ويقطع الدارة إذا زاد التيار عن الحد الآمن، وهذا يحمي الأسلاك والأجهزة من التلف أو الحريق.", diff:"easy", cat:"electrical" },
+{ q:"واش تسمى القطعة اللي تدير المحرك عند تدوير المفتاح؟", opts:["المولد","المرفق (Démarreur)","الرادياتور","الكاربوراتور"], correct:1, explain:"المرفق موتور كهربائي صغير يدير عمود المرفق بقوة كافية باش يبدأ المحرك دورته الأولى.", diff:"easy", cat:"electrical" },
+{ q:"بصفة عامة، جهد بطارية السيارة العادية هو:", opts:["6 فولط","12 فولط","24 فولط","48 فولط"], correct:1, explain:"غالبية سيارات الركوب تستعمل بطارية 12 فولط، بينما بعض الشاحنات الكبيرة تستعمل 24 فولط.", diff:"easy", cat:"electrical" },
+{ q:"واش تسمى الأسلاك اللي توصل من موزع الشرارة (أو البوبينة) للبوجيات؟", opts:["أسلاك الشمعات (Fils de bougies)","كابلات البطارية","حزام المولد","أنبوب العادم"], correct:0, explain:"أسلاك الشمعات توصل التيار العالي الجهد من نظام الإشعال للبوجيات باش تولد الشرارة.", diff:"easy", cat:"electrical" },
+{ q:"إذا كانت البطارية تفرغ بسرعة رغم أنها جديدة، من الأسباب المحتملة:", opts:["تسرب تيار (Fuite de courant) من دارة كهربائية","زيادة فالزيت","مشكل فالإطارات","نقص فالماء فقط"], correct:0, explain:"تسرب التيار يحدث لما جهاز كهربائي يبقى يستهلك طاقة حتى والسيارة مطفية (سوء عزل، جهاز منسي مشغل، أو عطل فدارة).", diff:"hard", cat:"electrical" },
+{ q:"واش يعني قياس 'الشحن الطافي' (Charge flottante) بالمولد؟", opts:["فولطية تقريباً 13.5-14.5V أثناء دوران المحرك تدل على شحن سليم","فولطية 12V وقت الراحة","فولطية صفر","تيار متردد فقط"], correct:0, explain:"إذا كان المحرك خدام والمولد سليم، الفولطية على أطراف البطارية لازم تكون بين 13.5 و14.5 فولط تقريباً، دليل على شحن فعّال.", diff:"hard", cat:"electrical" },
+{ q:"حساس الأكسجين (Sonde Lambda) فالسيارة دوره:", opts:["قياس كمية الأكسجين فالعادم لضبط خليط الوقود","قياس سرعة السيارة","قياس ضغط الإطارات","قياس حرارة المقصورة"], correct:0, explain:"حساس الأكسجين يقيس نسبة الأكسجين المتبقية فغازات العادم، والكمبيوتر يستعمل هاذي القراءة باش يضبط كمية الوقود المحقونة.", diff:"hard", cat:"electrical" },
+{ q:"واش تعني لمبة 'Check Engine' (فحص المحرك) إذا ولات مضوية بشكل ثابت؟", opts:["مشكل بسيط لا يستدعي الاهتمام","الكمبيوتر سجل عطل فأحد الأنظمة (حساس، حقن..) لازم فحص بالحاسوب","نقص فالوقود فقط","البطارية فارغة"], correct:1, explain:"هاذي اللمبة تشير أن وحدة التحكم سجلت 'كود عطل' (Code défaut) فأحد الأنظمة، ولازم قراءتها بجهاز التشخيص (OBD) لمعرفة السبب بالضبط.", diff:"hard", cat:"electrical" },
+{ q:"ECU (وحدة التحكم الإلكترونية) فالسيارة الحديثة تتحكم أساساً في:", opts:["الإضاءة الداخلية فقط","الحقن، الإشعال، وأنظمة أخرى بناءً على معطيات الحساسات","لون السيارة","ضغط الإطارات فقط"], correct:1, explain:"الـECU تجمع بيانات من عشرات الحساسات (حرارة، أكسجين، ضغط الهواء..) وتتحكم فحقن الوقود وتوقيت الإشعال وأنظمة أخرى فالوقت الحقيقي.", diff:"hard", cat:"electrical" },
+{ q:"واش يعني عطل 'Court-circuit' (دارة قصيرة) فالتوصيلات الكهربائية؟", opts:["اتصال مباشر غير مرغوب بين سلكين يسبب زيادة تيار مفاجئة", "انقطاع كامل فالسلك","نقص فالفولطية فقط","تسرب فالماء"], correct:0, explain:"الدارة القصيرة تحدث لما سلكين يتلامسو مباشرة (بسبب تلف العزل مثلاً)، وهذا يسبب مرور تيار كبير فجأة قد يحرق الفيوز أو يتلف الجهاز.", diff:"hard", cat:"electrical" },
+
+/* ================= ناقل الحركة ================= */
+{ q:"واش يسمى الجزء اللي ينقل الحركة من المحرك للعجلات؟", opts:["ناقل الحركة (Boîte de vitesses)","الرادياتور","البوجي","المرشح"], correct:0, explain:"ناقل الحركة (القير) ينقل ويعدّل الدوران القادم من المحرك للعجلات حسب السرعة والحاجة للعزم.", diff:"easy", cat:"transmission" },
+{ q:"فالسيارة أوتوماتيك، السائق:", opts:["يبدل السرعات يدوياً بالكلاتش","ما يحتاجش يبدل السرعات يدوياً","يحتاج كلاتش فقط بدون فرامل","لا يوجد ناقل حركة"], correct:1, explain:"القير الأوتوماتيكي يبدل السرعات بروحه حسب سرعة السيارة ودوران المحرك، بدون تدخل يدوي من السائق.", diff:"easy", cat:"transmission" },
+{ q:"الكلاتش (Embrayage) فالسيارة اليدوية دوره:", opts:["فصل ووصل المحرك عن ناقل الحركة عند تبديل السرعة","تبريد المحرك","إضاءة الطريق","تشحيم الفرامل"], correct:0, explain:"الكلاتش يسمح بفصل المحرك مؤقتاً عن ناقل الحركة باش يقدر السائق يبدل السرعة بسلاسة بدون ما يتصادم التروس.", diff:"easy", cat:"transmission" },
+{ q:"واش يسمى السائل المستعمل فناقل الحركة للتشحيم؟", opts:["ماء الرادياتور","زيت ناقل الحركة (Huile de boîte)","وقود البنزين","سائل الفرامل"], correct:1, explain:"زيت ناقل الحركة يشحّم التروس والأجزاء المتحركة داخل القير ويحميها من التآكل والحرارة الزائدة.", diff:"easy", cat:"transmission" },
+{ q:"واش تسمى القطعة اللي توزع القوة على العجلتين الخلفيتين (أو الأماميتين) باختلاف السرعة فالمنعطف؟", opts:["الدفرنسيال (Différentiel)","البوجي","الرادياتور","الفلتر"], correct:0, explain:"الدفرنسيال يسمح للعجلتين بالدوران بسرعات مختلفة قليلاً أثناء المنعطف (العجلة الخارجية تقطع مسافة أطول).", diff:"easy", cat:"transmission" },
+{ q:"واش تعني ظاهرة 'انزلاق الكلاتش' (Patinage d'embrayage)؟", opts:["الكلاتش ما عادش يوصل القوة بالكامل للعجلات رغم دوران المحرك بقوة","المحرك توقف فجأة","نقص فالزيت فالمحرك","تسرب فالرادياتور"], correct:0, explain:"لما تتآكل قرص الكلاتش، يبدأ ينزلق بدل ما يوصل القوة بالكامل، فتحس المحرك يدور بقوة لكن السيارة ما تتسارعش بنفس القدر.", diff:"hard", cat:"transmission" },
+{ q:"فالقير الأوتوماتيكي، محول العزم (Convertisseur de couple) يقوم بدور شبيه بـ:", opts:["الفرامل","الكلاتش الهيدروليكي","البوجي","المرشح"], correct:1, explain:"محول العزم يستعمل زيت تحت ضغط باش ينقل القوة من المحرك للقير بطريقة هيدروليكية سلسة، بدل الكلاتش الميكانيكي.", diff:"hard", cat:"transmission" },
+{ q:"العلبة اليدوية ذات الدفع الرباعي (4x4) تحتوي زيادة على:", opts:["صندوق توزيع (Boîte de transfert) لتوزيع القوة على المحورين","بوجي إضافي","رادياتور مضاعف","بطارية إضافية فقط"], correct:0, explain:"صندوق التوزيع يوزع القوة بين المحور الأمامي والخلفي، وأحياناً يعطي نسبة تخفيض إضافية للطرق الوعرة.", diff:"hard", cat:"transmission" },
+{ q:"صوت 'أزيز' (grincement) عند الضغط على الكلاتش غالباً يدل على:", opts:["تلف فبيرينغ الكلاتش (Butée d'embrayage)","نقص فالوقود","مشكل فالإطارات","تسرب الماء"], correct:0, explain:"بيرينغ الكلاتش هو الجزء اللي يضغط على نوابض قرص الكلاتش، وإذا تآكل يصدر صوت أزيز مميز عند الضغط على الدواسة.", diff:"hard", cat:"transmission" },
+{ q:"واش يعني 'Rapport de démultiplication' فناقل الحركة؟", opts:["نسبة التخفيض بين عدد أسنان تروس مختلفة تحدد العزم والسرعة","لون الزيت المستعمل","حجم القير فقط","وزن السيارة"], correct:0, explain:"نسبة التخفيض تحدد كيفاش يتحول دوران المحرك لدوران العجلات — نسبة عالية تعطي عزم أكبر وسرعة أقل، والعكس صحيح.", diff:"hard", cat:"transmission" },
+
+/* ================= الفرامل ================= */
+{ q:"واش دور الفرامل (المكابح) فالسيارة؟", opts:["تسريع السيارة","إبطاء أو إيقاف السيارة","تبريد المحرك","شحن البطارية"], correct:1, explain:"الفرامل تحول طاقة حركة السيارة لحرارة عبر الاحتكاك، وهذا يبطئ أو يوقف السيارة حسب قوة الضغط.", diff:"easy", cat:"brakes" },
+{ q:"سائل الفرامل يستعمل من أجل:", opts:["نقل الضغط من الدواسة للمكابح عبر الأنابيب","تشحيم المحرك","تبريد الرادياتور","تنظيف الزجاج"], correct:0, explain:"نظام الفرامل هيدروليكي؛ الضغط اللي تديره برجلك على الدواسة ينتقل عبر السائل فالأنابيب لكل عجلة.", diff:"easy", cat:"brakes" },
+{ q:"واش تسمى القطعة المعدنية اللي تحتك مع القرص للتوقيف؟", opts:["البلايات (Plaquettes de frein)","البوجي","الفلتر","الحزام"], correct:0, explain:"البلايات (تيل الفرامل) تحتك بقرص الفرامل باش تولد قوة الاحتكاك اللي توقف العجلة.", diff:"easy", cat:"brakes" },
+{ q:"إذا سمعت صرير معدني حاد عند الضغط على الفرامل، غالباً يعني:", opts:["الزيت زائد","البلايات تآكلت وحان وقت تبديلها","الإطارات منفوخة بزاف","البطارية فارغة"], correct:1, explain:"أغلب البلايات فيها مؤشر معدني صغير يصدر صرير مقصود لما تقارب على النفاد، تنبيهاً للسائق باش يبدلها.", diff:"easy", cat:"brakes" },
+{ q:"فرامل اليد (Frein à main) دورها الأساسي:", opts:["إبطاء السيارة أثناء السير بسرعة عالية","تثبيت السيارة واقفة (خاصة فالمنحدر)","تبريد الفرامل الأمامية","تنظيف الأقراص"], correct:1, explain:"فرملة اليد مصممة لتثبيت السيارة وهي واقفة، وليس لإبطائها أثناء السير بسرعة (خطر على النظام).", diff:"easy", cat:"brakes" },
+{ q:"واش يعني نظام ABS فالفرامل؟", opts:["نظام يمنع انغلاق العجلات (تزحلقها) أثناء الفرملة القوية","نظام تبريد الفرامل فقط","نظام زيادة قوة المحرك","نظام إنارة إضافي"], correct:0, explain:"نظام ABS يحس بميل العجلة للانغلاق ويقوم بتخفيف وتكرار الضغط عليها بسرعة كبيرة، وهذا يحافظ على قدرة التوجيه أثناء الفرملة القوية.", diff:"hard", cat:"brakes" },
+{ q:"ظاهرة 'Fading' (تراجع فعالية الفرامل) فالمنحدرات الطويلة سببها الرئيسي:", opts:["ارتفاع حرارة الأقراص والبلايات بشكل مفرط","نقص فالبنزين","مشكل فالكهرباء","نقص فالزيت"], correct:0, explain:"الاستعمال المتواصل للفرامل فمنحدر طويل يرفع حرارتها بزاف، وهذا يقلل معامل الاحتكاك ويضعف فعالية الفرملة مؤقتاً.", diff:"hard", cat:"brakes" },
+{ q:"واش دور 'المبولة' أو الأسطوانة الرئيسية (Maître-cylindre) فنظام الفرامل؟", opts:["تخزين البنزين","تحويل قوة الدواسة لضغط هيدروليكي يوزع على الفرامل الأربعة","تبريد المحرك","شحن البطارية"], correct:1, explain:"الأسطوانة الرئيسية تحول القوة الميكانيكية من دواسة الفرامل لضغط هيدروليكي ينتقل عبر السائل لكل عجلة.", diff:"hard", cat:"brakes" },
+{ q:"إذا حسيت بدواسة الفرامل 'طرية' أو تنزل لتحت بزاف، السبب المحتمل:", opts:["هواء داخل دارة سائل الفرامل أو تسرب","زيادة فضغط الإطارات","مشكل فالبطارية","نقص فالزيت فالمحرك"], correct:0, explain:"الهواء داخل دارة السائل (بعكس السائل نفسه) قابل للانضغاط، فيخلي الدواسة تحس 'طرية' ما توصلش الضغط بكفاءة.", diff:"hard", cat:"brakes" },
+{ q:"واش يعني مصطلح 'Frein moteur' (الفرملة بالمحرك)؟", opts:["استعمال مقاومة المحرك (بنزول سرعة) لإبطاء السيارة بدل الاعتماد كلياً على الفرامل","نوع خاص من البلايات","عطل فالفرامل","نظام كهربائي إضافي"], correct:0, explain:"لما تخلي سرعة منخفضة (خصوصاً فالمنحدرات)، مقاومة المحرك تساعد فإبطاء السيارة وتقلل الحمل على الفرامل التقليدية.", diff:"hard", cat:"brakes" },
+
+/* ================= التعليق والتوجيه ================= */
+{ q:"واش دور المخمدات (Amortisseurs) فالسيارة؟", opts:["امتصاص الاهتزازات وتثبيت السيارة على الطريق","تبريد المحرك","شحن البطارية","تنظيف الزجاج"], correct:0, explain:"المخمدات تمتص طاقة الاهتزاز الناتجة عن النوابض وتحولها لحرارة، وهذا يحافظ على تلامس الإطارات بالطريق ويحسن الثبات.", diff:"easy", cat:"suspension" },
+{ q:"عجلة القيادة (الدركسيون) تتحكم في:", opts:["سرعة المحرك","اتجاه العجلات الأمامية","الفرامل","الإضاءة"], correct:1, explain:"عجلة القيادة متصلة بنظام التوجيه اللي يوجّه العجلات الأمامية لتغيير اتجاه السيارة.", diff:"easy", cat:"suspension" },
+{ q:"إذا كانت السيارة 'تميل' بزاف فالمنعطفات، من الأسباب المحتملة:", opts:["مخمدات أو نوابض ضعيفة/تالفة","نقص فالبنزين","مشكل فالبطارية","نقص فسائل الفرامل"], correct:0, explain:"مخمدات ونوابض ضعيفة ما تعودش تتحكم فحركة الهيكل، فتحس ميلان واضح للسيارة فالمنعطفات.", diff:"easy", cat:"suspension" },
+{ q:"واش تسمى القطعة اللي تربط عجلة القيادة بميكانيزم توجيه العجلات؟", opts:["صندوق التوجيه (Boîtier de direction / Crémaillère)","الرادياتور","البوجي","الفلتر"], correct:0, explain:"صندوق التوجيه (كريمايير) يحول دوران عجلة القيادة لحركة أفقية توجه العجلات الأمامية يميناً ويساراً.", diff:"easy", cat:"suspension" },
+{ q:"واش يعني اختلال 'الزوايا' (Parallélisme / Géométrie) فالعجلات؟", opts:["عدم توازي العجلات بالشكل الصحيح مما يسبب تآكل غير متساوي للإطارات","نقص فضغط الهواء فقط","مشكل فالفرامل","تلف فالمحرك"], correct:0, explain:"اختلال الزوايا يخلي العجلات ما تكونش موازية أو مضبوطة بالزاوية الصحيحة، وهذا يسبب سحب للسيارة لجهة معينة وتآكل غير متساوي للإطارات.", diff:"hard", cat:"suspension" },
+{ q:"إذا حسيت باهتزاز فعجلة القيادة عند سرعة معينة، السبب الغالب:", opts:["عدم توازن العجلات (Déséquilibrage) أو مشكل فالإطار","نقص فالزيت","مشكل فالبطارية","زيادة فالوقود"], correct:0, explain:"عدم توازن العجلة (توزيع وزن غير متساوٍ) يسبب اهتزاز محسوس فعجلة القيادة، خصوصاً فسرعات معينة.", diff:"hard", cat:"suspension" },
+{ q:"واش دور 'البارة المضادة للتمايل' (Barre stabilisatrice/anti-roulis)؟", opts:["تقليل ميلان الهيكل أثناء المنعطفات وتحسين الثبات","تبريد المحرك","شحن البطارية","تسريع السيارة"], correct:0, explain:"هاذي البارة تربط عجلتي نفس المحور وتقاوم ميلان الهيكل الجانبي أثناء المنعطفات، وهذا يحسن الثبات والتحكم.", diff:"hard", cat:"suspension" },
+{ q:"صوت 'طقطقة' متكررة من جهة العجلة الأمامية عند المنعطفات غالباً يدل على تلف:", opts:["رأس المقص (Rotule de direction) أو مفصل الكردان (Cardan)","البوجي","الفلتر","المولد"], correct:0, explain:"رأس المقص والمفاصل المتحركة فنظام التوجيه والتعليق إذا تآكلت تصدر صوت طقطقة خصوصاً عند دوران العجلة بزاوية.", diff:"hard", cat:"suspension" },
+
+/* ================= نظام التبريد ================= */
+{ q:"واش دور الرادياتور (المشع) فالسيارة؟", opts:["تبريد الماء اللي يدور فالمحرك","تخزين الوقود","شحن البطارية","تنظيف الهواء"], correct:0, explain:"الرادياتور يبرد سائل التبريد الساخن الخارج من المحرك عن طريق تمريره فأنابيب رفيعة يمر عليها الهواء.", diff:"easy", cat:"cooling" },
+{ q:"إذا طلعت إبرة الحرارة (Température) للأحمر، لازم:", opts:["تزيد فالسرعة","توقف السيارة فمكان آمن وتخليها تبرد","تزيد فالبنزين","تدير الفرامل بقوة"], correct:1, explain:"سخانة المحرك خطر حقيقي يقدر يسبب تلف كبير (تشقق الكولاس مثلاً)، فلازم توقف بسرعة فمكان آمن وتخلي المحرك يبرد.", diff:"easy", cat:"cooling" },
+{ q:"المروحة (Ventilateur) فمقدمة المحرك دورها:", opts:["تبريد الرادياتور بدفع الهواء عليه","تشحيم المحرك","شحن البطارية","تنظيف الزجاج"], correct:0, explain:"المروحة تسحب أو تدفع الهواء عبر الرادياتور خاصة فالسرعات المنخفضة أو الوقوف، وين الهواء الطبيعي ما يكفيش للتبريد.", diff:"easy", cat:"cooling" },
+{ q:"واش دور الترموستا (Thermostat) فنظام التبريد؟", opts:["يتحكم فمرور الماء للرادياتور حسب درجة حرارة المحرك للوصول بسرعة لحرارة التشغيل المثلى","يبرد الزيت فقط","يشحن البطارية","يضخ الوقود"], correct:0, explain:"الترموستا تبقى مغلقة والمحرك بارد باش يسخن بسرعة، وتفتح تدريجياً بعدما توصل لدرجة حرارة معينة باش تسمح بمرور الماء للرادياتور.", diff:"hard", cat:"cooling" },
+{ q:"إذا كان هناك دخان أبيض كثيف من العادم مع رائحة حلوة، احتمال كبير يكون:", opts:["احتراق الزيت فقط","تسرب سائل التبريد لداخل غرفة الاحتراق (مشكل فجوان الكولاس)","نقص فضغط الإطارات","مشكل فالفرامل"], correct:1, explain:"سائل التبريد يحتوي مواد (Glycol) تعطي رائحة حلوة مميزة عند احتراقها، وهذا علامة قوية على تسرب من جوان الكولاس أو تشقق فرأس المحرك.", diff:"hard", cat:"cooling" },
+{ q:"واش يعني 'تجمد' أو 'حبس هواء' (Poche d'air / Airlock) فدارة التبريد؟", opts:["فقاعة هواء تمنع الدوران الصحيح لسائل التبريد وتسبب سخانة موضعية","زيادة فضغط الزيت","تلف فالبطارية","نقص فالبنزين"], correct:0, explain:"فقاعة الهواء المحبوسة تعرقل دوران سائل التبريد بشكل طبيعي، وهذا يخلق نقاط سخانة موضعية رغم أن مستوى السائل قد يبدو عادي.", diff:"hard", cat:"cooling" },
+
+/* ================= نظام الوقود ================= */
+{ q:"واش دور مضخة الوقود (Pompe à essence)؟", opts:["ضخ الوقود من الخزان للمحرك","تبريد المحرك","شحن البطارية","تنظيف الزجاج"], correct:0, explain:"مضخة الوقود تسحب الوقود من الخزان وتدفعه تحت ضغط نحو نظام الحقن أو الكاربوراتور.", diff:"easy", cat:"fuel" },
+{ q:"فلتر الوقود (Filtre à carburant) دوره:", opts:["تصفية الشوائب من الوقود قبل وصوله للمحرك","تبريد الوقود","زيادة كمية الوقود","تخزين الوقود"], correct:0, explain:"فلتر الوقود يمنع الشوائب والرواسب من الوصول لحاقنات الوقود الحساسة، وهذا يحميها من الانسداد أو التلف.", diff:"easy", cat:"fuel" },
+{ q:"معظم السيارات الحديثة تستعمل نظام:", opts:["الكاربوراتور فقط","الحقن الإلكتروني للوقود (Injection)","التبخير الطبيعي فقط","لا يوجد نظام وقود"], correct:1, explain:"الحقن الإلكتروني يعطي دقة أكبر فكمية الوقود المحقونة حسب ظروف التشغيل، وهذا يحسن الأداء والاستهلاك ويقلل الانبعاثات.", diff:"easy", cat:"fuel" },
+{ q:"واش يعني 'Rampe d'injection' (السكة المشتركة/Rail) فنظام الحقن المباشر؟", opts:["أنبوب يخزن الوقود تحت ضغط عالي ويوزعه على الحاقنات","خزان الوقود الرئيسي","فلتر الهواء","مضخة الماء"], correct:0, explain:"السكة المشتركة (Rail) تخزن الوقود تحت ضغط عالي جداً وتوزعه بالتساوي على كل حاقن، وهذا يسمح بحقن دقيق فالمحركات الحديثة.", diff:"hard", cat:"fuel" },
+{ q:"إذا كان المحرك 'يهز' (يتقطع) فالمرحلة البطيئة (Ralenti)، من الأسباب المحتملة:", opts:["حاقن وقود متسخ أو مشكل فحساس ضغط الهواء","زيادة فالبنزين","نقص فضغط الإطارات فقط","مشكل فالمخمدات"], correct:0, explain:"حاقن متسخ أو حساس معطل يخلي خليط الوقود والهواء غير مضبوط، وهذا يسبب اهتزاز أو تقطع فدوران المحرك بالسرعة البطيئة.", diff:"hard", cat:"fuel" },
+{ q:"واش تعني ظاهرة 'Cavitation' فمضخة الوقود؟", opts:["تكون فقاعات هواء/بخار داخل المضخة تقلل من كفاءة الضخ","زيادة فقوة المضخة","تبريد الوقود","تنظيف الفلتر تلقائياً"], correct:0, explain:"الكافيتاسيون تحدث لما ينخفض الضغط بزاف داخل المضخة فتتكون فقاعات، وهذا يقلل كفاءة الضخ وقد يتلف المضخة على المدى الطويل.", diff:"hard", cat:"fuel" },
+
+/* ================= الإطارات ================= */
+{ q:"ضغط الهواء فالإطارات لازم يتفقد:", opts:["مرة واحدة فالعمر","بشكل دوري (شهرياً تقريباً) خاصة قبل الرحلات الطويلة","فقط عند الشراء","لا داعي للتفقد"], correct:1, explain:"ضغط الإطارات يتغير طبيعياً مع الوقت ودرجة الحرارة، فالفحص الدوري يحافظ على الأمان والاستهلاك الأمثل للوقود.", diff:"easy", cat:"tires" },
+{ q:"إطار منفوخ بزاف (ضغط عالي جداً) يسبب:", opts:["تآكل فوسط الإطار وتقليل التماسك","تحسن الثبات بشكل كامل","لا يوجد تأثير","زيادة عمر الإطار"], correct:0, explain:"الضغط الزائد يخلي منتصف الإطار يلامس الطريق أكثر من الأطراف، وهذا يسبب تآكل غير متساوي وتقليل مساحة التماس الفعلية.", diff:"easy", cat:"tires" },
+{ q:"عمق نقشة الإطار (Bande de roulement) المهترئة بزاف يزيد خطر:", opts:["الانزلاق خاصة فالطرق المبللة","توفير الوقود","تحسن الفرملة","لا يوجد أي خطر"], correct:0, explain:"النقشة العميقة تسمح بتصريف الماء من تحت الإطار، وإذا اهترأت يقل التماسك بزاف خاصة فالطرق المبللة (خطر الانزلاق المائي).", diff:"easy", cat:"tires" },
+{ q:"واش يعني 'Aquaplanage' (التزلج المائي)؟", opts:["فقدان تلامس الإطار بالطريق بسبب طبقة ماء تتكون تحته عند السرعة العالية","انفجار الإطار فجأة","تآكل الإطار من الداخل فقط","زيادة ضغط الإطار تلقائياً"], correct:0, explain:"عند سرعة عالية وطريق مبلل، طبقة ماء تتكون بين الإطار والطريق فيفقد الإطار التماس تماماً، وهذا يفقد السائق التحكم بالتوجيه والفرملة.", diff:"hard", cat:"tires" },
+{ q:"تآكل الإطار بشكل غير متساوٍ من جهة واحدة (داخلي أو خارجي) يدل غالباً على:", opts:["اختلال فزوايا التوجيه (Parallélisme)","نقص فالوقود","مشكل فالبطارية","تلف فالمحرك"], correct:0, explain:"لما تكون زوايا التوجيه غير مضبوطة، الإطار يلامس الطريق بشكل غير متساوٍ، وهذا يسبب تآكل أسرع من جهة معينة.", diff:"hard", cat:"tires" },
+{ q:"مؤشرات التآكل (Témoins d'usure) داخل نقشة الإطار دورها:", opts:["تزيين الإطار فقط","الإشارة للحد الأدنى المسموح به لعمق النقشة قبل الخطر","زيادة قوة الإطار","تبريد الإطار"], correct:1, explain:"هاذي المؤشرات عبارة عن نتوءات صغيرة داخل قنوات النقشة، إذا وصل التآكل لمستواها معناه الإطار وصل للحد الأدنى القانوني والآمن.", diff:"hard", cat:"tires" },
+
+/* ================= الصيانة العامة ================= */
+{ q:"شحال المدة التقريبية المعتادة لتبديل زيت المحرك؟", opts:["كل 500 كم","كل 5000 إلى 10000 كم حسب نوع الزيت والسيارة","كل 100000 كم","لا يحتاج تبديل أبداً"], correct:1, explain:"المدة تختلف حسب نوع الزيت (معدني أو تركيبي) وتوصية الصانع، لكن عموماً تتراوح بين 5000 و10000 كم.", diff:"easy", cat:"maintenance" },
+{ q:"فلتر الهواء المتسخ بزاف يأثر على:", opts:["أداء المحرك واستهلاك الوقود","لون السيارة فقط","الفرامل فقط","الإطارات فقط"], correct:0, explain:"فلتر متسخ يقلل كمية الهواء الداخل للمحرك، وهذا يخل بنسبة الخليط ويقلل الأداء ويزيد الاستهلاك.", diff:"easy", cat:"maintenance" },
+{ q:"واش من هاذو يعتبر من أساسيات الصيانة الدورية؟", opts:["تبديل الزيت والفلاتر بانتظام","تغيير لون السيارة","إزالة المرايا","نزع الأحزمة"], correct:0, explain:"تبديل الزيت والفلاتر (هواء، وقود، زيت) بانتظام من أهم عوامل إطالة عمر المحرك والحفاظ على أدائه.", diff:"easy", cat:"maintenance" },
+{ q:"مساحات الزجاج (Essuie-glaces) تحتاج تبديل عندما:", opts:["تولي ما تمسحش الماء بشكل جيد وتترك خطوط","كل يوم","لا تحتاج تبديل أبداً","فقط فالصيف"], correct:0, explain:"المطاط ديال المساحات يتآكل مع الوقت والشمس، وإذا بدا يترك خطوط أو ما يمسحش بشكل جيد، حان وقت تبديله.", diff:"easy", cat:"maintenance" },
+{ q:"واش الفرق بين الزيت المعدني (Minéral) والزيت التركيبي (Synthétique)؟", opts:["لا يوجد فرق إطلاقاً","التركيبي مصنع كيميائياً بمواصفات أدق ويقاوم الحرارة والتأكسد بشكل أفضل عموماً","المعدني أغلى ثمناً دائماً","التركيبي يستعمل فقط فالشتاء"], correct:1, explain:"الزيت التركيبي يُصنع بعمليات كيميائية دقيقة تعطيه ثبات أكبر فدرجات الحرارة العالية والمنخفضة، ومقاومة أفضل للتأكسد مقارنة بالمعدني.", diff:"hard", cat:"maintenance" },
+{ q:"مصطلح 'Vidange' فالميكانيك يقصد به بالضبط:", opts:["تبديل الإطارات","تفريغ وتبديل زيت المحرك (وأحياناً الفلتر)","شحن البطارية","تبديل البوجيات فقط"], correct:1, explain:"'الفيدونج' هي عملية تفريغ الزيت القديم من المحرك ووضع زيت جديد، وعادة تترافق مع تبديل فلتر الزيت.", diff:"hard", cat:"maintenance" },
+{ q:"قراءة دفتر الصيانة (Carnet d'entretien) قبل شراء سيارة مستعملة مهمة لأنها:", opts:["تعطي تاريخ الأعطال والصيانات اللي دارتها السيارة سابقاً","لا فائدة منها","تحدد لون السيارة الأصلي فقط","تحدد وزن السيارة"], correct:0, explain:"دفتر الصيانة يوثق كل العمليات اللي دارتها السيارة (فيدونج، تبديل قطع، إصلاحات)، وهذا يعطي فكرة عن حالتها الحقيقية.", diff:"hard", cat:"maintenance" },
+{ q:"واش يعني مصطلح 'Diagnostic OBD' فالصيانة الحديثة؟", opts:["قراءة أعطال السيارة إلكترونياً عبر منفذ خاص متصل بوحدة التحكم","تبديل الزيت فقط","فحص الإطارات بصرياً فقط","تنظيف السيارة"], correct:0, explain:"منفذ OBD يسمح لجهاز تشخيص خاص بقراءة الأكواد اللي سجلتها وحدة التحكم (ECU) عن أي أعطال فأنظمة السيارة المختلفة.", diff:"hard", cat:"maintenance" },
+
+/* ================= نظام العادم ================= */
+{ q:"واش دور نظام العادم (Échappement) فالسيارة؟", opts:["إخراج غازات الاحتراق وتقليل الضوضاء","تبريد المحرك","شحن البطارية","تنظيف الزجاج"], correct:0, explain:"نظام العادم يوجه غازات الاحتراق للخارج، ويقلل من الضوضاء والانبعاثات الضارة عبر الكاتم والمحول الحفاز.", diff:"easy", cat:"exhaust" },
+{ q:"إذا سمعت صوت عالي جداً من تحت السيارة (كأنه بلا كاتم صوت)، السبب الغالب:", opts:["ثقب أو تلف فأنبوب العادم أو الكاتم","نقص فالزيت","مشكل فالبطارية","زيادة فضغط الإطارات"], correct:0, explain:"ثقب أو تشقق فأنبوب العادم أو الكاتم يخلي الغازات تخرج مباشرة بدون تخميد، وهذا يسبب صوت عالي وواضح.", diff:"easy", cat:"exhaust" },
+{ q:"واش دور 'المحول الحفاز' (Pot catalytique / Catalyseur)؟", opts:["تحويل الغازات السامة (CO, NOx, HC) لغازات أقل ضرراً قبل خروجها للجو","زيادة قوة المحرك","تبريد العادم فقط","تخزين الوقود"], correct:0, explain:"المحول الحفاز يحتوي معادن نفيسة (بلاتين، بالاديوم..) تحفز تفاعلات كيميائية تحول الغازات السامة لثاني أكسيد الكربون وماء ونيتروجين.", diff:"hard", cat:"exhaust" },
+{ q:"انسداد المحول الحفاز يمكن يسبب:", opts:["تحسن فأداء المحرك","فقدان فقوة المحرك وزيادة استهلاك الوقود بسبب عرقلة خروج العادم","تبريد أسرع للمحرك","لا يوجد أي تأثير"], correct:1, explain:"إذا انسد المحول، الغازات ما تقدرش تخرج بسهولة، وهذا يخلق ضغط عكسي يقلل أداء المحرك ويزيد الاستهلاك.", diff:"hard", cat:"exhaust" },
+{ q:"حساس الأكسجين قبل وبعد المحول الحفاز يستعمل بالأساس من أجل:", opts:["مراقبة فعالية المحول الحفاز وضبط خليط الوقود","قياس سرعة السيارة","قياس ضغط الزيت","إنارة العادم"], correct:0, explain:"المقارنة بين قراءة الحساس قبل وبعد المحول تسمح للكمبيوتر بمعرفة إذا كان المحول يشتغل بكفاءة، وضبط الخليط تبعاً لذلك.", diff:"hard", cat:"exhaust" },
+
+];
+
+</script>
+<script>
+let currentLevel = null;
+let currentIndex = 0;
+let score = 0;
+let answered = false;
+let activeCat = 'all';
+let currentSet = [];
+
+const levelSelect = document.getElementById('levelSelect');
+const quizView = document.getElementById('quizView');
+const resultView = document.getElementById('resultView');
+const qtext = document.getElementById('qtext');
+const qcatTag = document.getElementById('qcatTag');
+const choicesEl = document.getElementById('choices');
+const explainBox = document.getElementById('explainBox');
+const nextBtn = document.getElementById('nextBtn');
+const progressFill = document.getElementById('progressFill');
+const scoreBadge = document.getElementById('scoreBadge');
+const levelBadge = document.getElementById('levelBadge');
+const statAttempts = document.getElementById('statAttempts');
+const statBestEasy = document.getElementById('statBestEasy');
+const statBestHard = document.getElementById('statBestHard');
+const historyToggle = document.getElementById('historyToggle');
+const historyPanel = document.getElementById('historyPanel');
+const historyList = document.getElementById('historyList');
+const recordBadge = document.getElementById('recordBadge');
+const catChipsEl = document.getElementById('catChips');
+
+const HISTORY_KEY = 'mech-quiz-history';
+const COINS_KEY = 'mech-quiz-coins';
+
+// المستوى الصعب يعطي كوينز أكثر من السهل
+const COIN_REWARD = { easy: 10, hard: 20 };
+
+const coinsTotalEl = document.getElementById('coinsTotal');
+const coinsGainEl = document.getElementById('coinsGain');
+let totalCoins = 0;
+let gainTimeout = null;
+
+function loadCoins(){
+  const v = localStorage.getItem(COINS_KEY);
+  return v ? (parseInt(v, 10) || 0) : 0;
+}
+function saveCoins(amount){
+  localStorage.setItem(COINS_KEY, String(amount));
+}
+function initCoins(){
+  totalCoins = loadCoins();
+  coinsTotalEl.textContent = totalCoins;
+}
+function awardCoins(amount){
+  totalCoins += amount;
+  coinsTotalEl.textContent = totalCoins;
+  saveCoins(totalCoins);
+  coinsGainEl.textContent = `+${amount}`;
+  coinsGainEl.classList.add('show');
+  clearTimeout(gainTimeout);
+  gainTimeout = setTimeout(() => coinsGainEl.classList.remove('show'), 900);
+}
+initCoins();
+
+function loadHistory(){
+  const v = localStorage.getItem(HISTORY_KEY);
+  return v ? JSON.parse(v) : [];
+}
+function saveAttempt(level, score, total){
+  let history = loadHistory();
+  history.push({ level, score, total, pct: score/total, date: new Date().toISOString() });
+  history = history.slice(-30);
+  localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+  return history;
+}
+function bestPctForLevel(history, level){
+  const items = history.filter(h => h.level === level);
+  if(items.length === 0) return null;
+  return items.reduce((best, h) => h.pct > best.pct ? h : best, items[0]);
+}
+function formatDate(iso){
+  const d = new Date(iso);
+  return d.toLocaleDateString('ar', { day:'numeric', month:'short' }) + ' — ' +
+         d.toLocaleTimeString('ar', { hour:'2-digit', minute:'2-digit' });
+}
+function refreshStats(){
+  const history = loadHistory();
+  statAttempts.textContent = history.length;
+  const bestEasy = bestPctForLevel(history, 'easy');
+  const bestHard = bestPctForLevel(history, 'hard');
+  statBestEasy.textContent = bestEasy ? `${bestEasy.score}/${bestEasy.total}` : '—';
+  statBestHard.textContent = bestHard ? `${bestHard.score}/${bestHard.total}` : '—';
+  if(history.length === 0){
+    historyList.innerHTML = '<div class="history-empty">ما فيه محاولات مسجلة بعد</div>';
+    return;
+  }
+  const recent = [...history].reverse().slice(0, 10);
+  historyList.innerHTML = recent.map(h => `
+    <div class="history-row">
+      <div>
+        <div>${h.level === 'easy' ? 'سهل 🟢' : 'صعب 🔴'}</div>
+        <div class="history-meta">${formatDate(h.date)}</div>
+      </div>
+      <div class="history-score">${h.score}/${h.total}</div>
+    </div>
+  `).join('');
+}
+
+historyToggle.addEventListener('click', () => {
+  const isShown = historyPanel.classList.toggle('show');
+  historyToggle.textContent = isShown ? 'إخفاء سجل المحاولات ↑' : 'عرض سجل المحاولات ↓';
+});
+document.getElementById('resetProgress').addEventListener('click', () => {
+  localStorage.removeItem(HISTORY_KEY);
+  refreshStats();
+});
+refreshStats();
+
+// ===== فلترة الأقسام =====
+function buildCatChips(){
+  const cats = ['all', ...Object.keys(CATEGORIES)];
+  catChipsEl.innerHTML = cats.map(c => `
+    <button class="cat-chip ${c === 'all' ? 'active' : ''}" data-cat="${c}">
+      ${c === 'all' ? 'الكل' : CATEGORIES[c]}
+    </button>
+  `).join('');
+  catChipsEl.querySelectorAll('.cat-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      activeCat = chip.dataset.cat;
+      catChipsEl.querySelectorAll('.cat-chip').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+    });
+  });
+}
+buildCatChips();
+
+document.querySelectorAll('.level-card').forEach(card => {
+  card.addEventListener('click', () => startQuiz(card.dataset.level));
+});
+
+function shuffle(arr){
+  const a = [...arr];
+  for(let i = a.length - 1; i > 0; i--){
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function startQuiz(level){
+  currentLevel = level;
+  currentIndex = 0;
+  score = 0;
+
+  let pool = QUESTIONS.filter(q => q.diff === level);
+  if(activeCat !== 'all') pool = pool.filter(q => q.cat === activeCat);
+  if(pool.length === 0) pool = QUESTIONS.filter(q => q.diff === level);
+  currentSet = shuffle(pool).slice(0, Math.min(15, pool.length));
+
+  levelSelect.style.display = 'none';
+  resultView.classList.remove('show');
+  quizView.classList.add('show');
+  levelBadge.textContent = level === 'easy' ? 'مستوى سهل' : 'مستوى صعب';
+  levelBadge.className = 'level-badge ' + level;
+  renderQuestion();
+}
+
+function renderQuestion(){
+  answered = false;
+  explainBox.classList.remove('show');
+  nextBtn.classList.remove('show');
+  const item = currentSet[currentIndex];
+  qcatTag.textContent = CATEGORIES[item.cat] || 'عام';
+  qtext.textContent = item.q;
+  choicesEl.innerHTML = '';
+  item.opts.forEach((opt, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'choice-btn';
+    btn.textContent = opt;
+    btn.addEventListener('click', () => selectAnswer(i, item));
+    choicesEl.appendChild(btn);
+  });
+  progressFill.style.width = (currentIndex / currentSet.length * 100) + '%';
+  scoreBadge.textContent = `${score} / ${currentSet.length}`;
+}
+
+function selectAnswer(i, item){
+  if(answered) return;
+  answered = true;
+  const btns = document.querySelectorAll('.choice-btn');
+  btns.forEach((b, idx) => {
+    b.disabled = true;
+    if(idx === item.correct) b.classList.add('correct');
+    else if(idx === i) b.classList.add('wrong');
+  });
+  if(i === item.correct){
+    score++;
+    awardCoins(COIN_REWARD[currentLevel]);
+  }
+  explainBox.textContent = item.explain || '';
+  explainBox.classList.add('show');
+  nextBtn.classList.add('show');
+  scoreBadge.textContent = `${score} / ${currentSet.length}`;
+}
+
+nextBtn.addEventListener('click', () => {
+  currentIndex++;
+  if(currentIndex < currentSet.length){
+    renderQuestion();
+  } else {
+    showResult();
+  }
+});
+
+function showResult(){
+  quizView.classList.remove('show');
+  resultView.classList.add('show');
+  const total = currentSet.length;
+  document.getElementById('resultScore').textContent = `${score}/${total}`;
+  recordBadge.classList.remove('show');
+
+  let msg;
+  const pct = score / total;
+  if(pct === 1) msg = "ممتاز! جاوبت على كل الأسئلة صح. مستواك فميكانيك السيارات قوي فعلاً.";
+  else if(pct >= 0.7) msg = "أداء زين جداً! عندك فهم جيد، راجع الأسئلة اللي أخطأت فيها وبتتقنها بسرعة.";
+  else if(pct >= 0.4) msg = "بداية لا بأس فيها. راجع الشرح تحت كل سؤال وارجع حاول من جديد.";
+  else msg = "ما مشكلة، الكل يبدأ من مكان ما. جرب المستوى السهل أول إذا بدأت بالصعب، وراجع الأساسيات.";
+  document.getElementById('resultMsg').textContent = msg;
+
+  const historyBefore = loadHistory();
+  const prevBest = bestPctForLevel(historyBefore, currentLevel);
+  const isNewRecord = historyBefore.filter(h => h.level === currentLevel).length > 0 &&
+                       (!prevBest || pct > prevBest.pct);
+
+  saveAttempt(currentLevel, score, total);
+  refreshStats();
+
+  if(isNewRecord) recordBadge.classList.add('show');
+}
+
+document.getElementById('retryBtn').addEventListener('click', () => {
+  quizView.classList.remove('show');
+  resultView.classList.remove('show');
+  levelSelect.style.display = 'block';
+});
+</script>
+
+<script>
+if('serviceWorker' in navigator){
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('service-worker.js')
+      .catch(err => console.error('فشل تسجيل service worker:', err));
+  });
+}
+</script>
+</body>
+</html>
